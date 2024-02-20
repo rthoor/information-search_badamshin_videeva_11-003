@@ -22,6 +22,7 @@ public class Main {
     private static final String START_URL = "https://vc.ru/flood/170561-chto-delat-esli-skuchno-500-ssylok-sobrannyh-za-polgoda";
     /* Язык для фильтрации сайта (проверяется по атрибуту lang тэга html) */
     private static final String LANGUAGE = "EN";
+    private static final Set<String> removeTags = Set.of("script", "style", "meta", "img", "video");
 
     /* Основной метод */
     public static void main(String[] args) {
@@ -32,11 +33,12 @@ public class Main {
         list = list.stream()
                 .peek(customURL -> customURL.setBody(main.getBody(customURL.getUrl())))
                 .filter(c -> c.getBody() != null && !c.getBody().isEmpty())
+                .limit(100)
                 .collect(Collectors.toList());
         FileUtils.write(list);
     }
 
-    /* Метод для получение тела сайта */
+    /* Метод для получение тела сайта без лишних тэгов */
     private String getBody(String urlString) {
         try {
             Document doc = Jsoup.connect(urlString)
@@ -51,7 +53,11 @@ public class Main {
                     .map(Attribute::getValue)
                     .orElse(null);
             if (LANGUAGE.equalsIgnoreCase(lang)) {
-                return doc.body().text();
+                for (String tag : removeTags) {
+                    Elements elementsToRemove = doc.getElementsByTag(tag);
+                    doc.getAllElements().removeAll(elementsToRemove);
+                }
+                return doc.body().toString();
             }
             return null;
         } catch (IOException e) {
