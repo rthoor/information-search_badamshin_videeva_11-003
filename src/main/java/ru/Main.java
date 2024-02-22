@@ -3,6 +3,7 @@ package ru;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Attribute;
 import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
@@ -19,9 +20,9 @@ public class Main {
     private static final String USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.119 YaBrowser/22.3.0.2430 Yowser/2.5 Safari/537.36";
     private static final String REFERRER = "https://www.google.com";
     /* Ссылка на страницу с ссылками */
-    private static final String START_URL = "https://vc.ru/flood/170561-chto-delat-esli-skuchno-500-ssylok-sobrannyh-za-polgoda";
+    private static final String START_URL = "https://infoselection.ru/pokupki2/item/1009-300-luchshikh-onlajn-servisov-rossiya";
     /* Язык для фильтрации сайта (проверяется по атрибуту lang тэга html) */
-    private static final String LANGUAGE = "EN";
+    private static final String LANGUAGE = "RU";
     private static final Set<String> removeTags = Set.of("script", "style", "meta", "img", "video");
 
     /* Основной метод */
@@ -33,7 +34,6 @@ public class Main {
         list = list.stream()
                 .peek(customURL -> customURL.setBody(main.getBody(customURL.getUrl())))
                 .filter(c -> c.getBody() != null && !c.getBody().isEmpty())
-                .limit(100)
                 .collect(Collectors.toList());
         FileUtils.write(list);
     }
@@ -46,13 +46,7 @@ public class Main {
                     .referrer(REFERRER)
                     .timeout(10000)
                     .get();
-            String lang = Optional.ofNullable(doc)
-                    .map(d -> d.getElementsByTag("html"))
-                    .map(Elements::first)
-                    .map(htmlElement -> htmlElement.attribute("lang"))
-                    .map(Attribute::getValue)
-                    .orElse(null);
-            if (LANGUAGE.equalsIgnoreCase(lang)) {
+            if (doc.text().length() > 500 && checkLanguageByText(doc)) {
                 for (String tag : removeTags) {
                     Elements elementsToRemove = doc.getElementsByTag(tag);
                     doc.getAllElements().removeAll(elementsToRemove);
@@ -66,6 +60,23 @@ public class Main {
         }
     }
 
+    public boolean checkLanguageByTag(Element doc) {
+        String lang = Optional.ofNullable(doc)
+                .map(d -> d.getElementsByTag("html"))
+                .map(Elements::first)
+                .map(htmlElement -> htmlElement.attribute("lang"))
+                .map(Attribute::getValue)
+                .orElse(null);
+        return LANGUAGE.equalsIgnoreCase(lang);
+    }
+
+    public boolean checkLanguageByText(Element doc) {
+        List<String> letters = "RU".equals(LANGUAGE) ?
+                Arrays.asList("а", "е", "и", "о") :
+                Arrays.asList("a", "e", "i", "o");
+        return letters.stream().allMatch(let -> doc.text().contains(let));
+    }
+
     /* Метод получения всех ссылок с сайта-каталога */
     private List<CustomURL> getCustomURLs(String urlString) {
         try {
@@ -76,7 +87,9 @@ public class Main {
                     .get();
             return doc.getElementsByTag("a")
                     .stream()
-                    .map(el -> el.attribute("href").getValue())
+                    .map(el -> el.attribute("href"))
+                    .filter(Objects::nonNull)
+                    .map(Attribute::getValue)
                     .filter(url -> url.matches(urlPattern.pattern()))
                     .map(url -> CustomURL.builder()
                             .url(url)
