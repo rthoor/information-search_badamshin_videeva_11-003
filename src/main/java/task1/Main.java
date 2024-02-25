@@ -1,4 +1,4 @@
-package ru;
+package task1;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Attribute;

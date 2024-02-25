@@ -1,4 +1,4 @@
-package ru;
+package task1;
 
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
