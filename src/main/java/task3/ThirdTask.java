@@ -1,7 +1,8 @@
-package task2;
+package task3;
 
 import com.github.demidko.aot.PartOfSpeech;
 import com.github.demidko.aot.WordformMeaning;
+import com.google.gson.Gson;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -9,34 +10,37 @@ import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class Main {
+public class ThirdTask {
     // Путь к папке с файлами
-    public static final String DATA_PATH = "\\data";
-    public static Map<String, Set<String>> map = new HashMap<>();
+    public static final String DATA_PATH = "C:\\data";
+    public static Map<String, Set<Integer>> map = new HashMap<>();
 
     /* Основной метод */
     public static void main(String[] args) {
-        Main main = new Main();
-        List<File> files = main.getFiles();
+        ThirdTask thirdTask = new ThirdTask();
+        Gson gson = new Gson();
+        List<File> files = thirdTask.getFiles();
         files.forEach(file -> {
-            String text = main.readFile(file);
+            String text = thirdTask.readFile(file);
             if (text != null) {
-                main.process(text);
+                thirdTask.process(file.getName(), text);
             }
         });
-        main.writeFile("tokens.txt", map.values().stream()
-                .flatMap(Collection::stream)
-                .sorted()
-                .toList()
-        );
-        main.writeFile("lemmas.txt", map.keySet().stream()
-                .sorted()
-                .map(key -> key + ": " + String.join(" ", map.get(key)))
-                .toList());
+        List<String> jsonList = map.entrySet().stream()
+                .map(entry -> new Json(entry.getValue().size(), new ArrayList<>(entry.getValue()), entry.getKey()))
+                .map(gson::toJson)
+                .toList();
+        thirdTask.writeFile("inverted_index.txt", jsonList);
     }
 
-    /* Разбиваем на слова, собираем все в формате ключ - значение (ключ - лемма, значение - массив токенов) */
-    public void process(String text) {
+    /* Поиск */
+    private void search() {
+        String searchInput = "";
+    }
+
+    /* Разбиваем на слова, собираем все в формате ключ - значение (ключ - лемма, значение - массив индексов файлов) */
+    public void process(String fileName, String text) {
+        int index = Integer.parseInt(fileName.replace(".txt", ""));
         String[] words = text.toLowerCase().split(" ");
         for (String word : words) {
             List<WordformMeaning> list = WordformMeaning.lookupForMeanings(word);
@@ -45,10 +49,10 @@ public class Main {
                 if (!(PartOfSpeech.Pretext).equals(lemma.getPartOfSpeech()) && !(PartOfSpeech.Union).equals(lemma.getPartOfSpeech())) {
                     String keyWord = lemma.toString().toLowerCase();
                     if (map.containsKey(keyWord)) {
-                        map.get(keyWord).add(word);
+                        map.get(keyWord).add(index);
                     } else {
-                        Set<String> set = new HashSet<>();
-                        set.add(word);
+                        Set<Integer> set = new HashSet<>();
+                        set.add(index);
                         map.put(keyWord, set);
                     }
                 }

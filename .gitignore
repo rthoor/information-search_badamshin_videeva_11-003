@@ -2,7 +2,7 @@
 target
 target/
 !.mvn/wrapper/maven-wrapper.jar
-!**/src/main/**/target/
+!**/src/firstTask/**/target/
 !**/src/test/**/target/
 
 ### IntelliJ IDEA ###
@@ -30,7 +30,7 @@ target/
 /nbdist/
 /.nb-gradle/
 build/
-!**/src/main/**/build/
+!**/src/firstTask/**/build/
 !**/src/test/**/build/
 
 ### VS Code ###

@@ -13,7 +13,7 @@ import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-public class Main {
+public class FirstTask {
     private static final Pattern urlPattern = Pattern.compile(
             "(http|https):\\/\\/([\\w_-]+(?:(?:\\.[\\w_-]+)+))([\\w.,@?^=%&:\\/~+#-]*[\\w@?^=%&\\/~+#-])",
             Pattern.CASE_INSENSITIVE | Pattern.MULTILINE | Pattern.DOTALL);
@@ -27,12 +27,12 @@ public class Main {
 
     /* Основной метод */
     public static void main(String[] args) {
-        Main main = new Main();
+        FirstTask firstTask = new FirstTask();
         // очищаем старые файлы и создаем новые файлы
         FileUtils.init();
-        List<CustomURL> list = main.getCustomURLs(START_URL);
+        List<CustomURL> list = firstTask.getCustomURLs(START_URL);
         list = list.stream()
-                .peek(customURL -> customURL.setBody(main.getBody(customURL.getUrl())))
+                .peek(customURL -> customURL.setBody(firstTask.getBody(customURL.getUrl())))
                 .filter(c -> c.getBody() != null && !c.getBody().isEmpty())
                 .collect(Collectors.toList());
         FileUtils.write(list);
