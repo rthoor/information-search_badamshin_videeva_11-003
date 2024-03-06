@@ -14,6 +14,7 @@ public class ThirdTask {
     // Путь к папке с файлами
     public static final String DATA_PATH = "C:\\data";
     public static Map<String, Set<Integer>> map = new HashMap<>();
+    public static Set<Integer> allIndexes = new HashSet<>();
 
     /* Основной метод */
     public static void main(String[] args) {
@@ -31,16 +32,48 @@ public class ThirdTask {
                 .map(gson::toJson)
                 .toList();
         thirdTask.writeFile("inverted_index.txt", jsonList);
+
+        thirdTask.search();
     }
 
     /* Поиск */
     private void search() {
-        String searchInput = "";
+        SearchService searchService = new SearchService(map, allIndexes);
+        String searchInput = "(удаваться AND одноименный) OR парной";
+        Set<Integer> set = searchService.search(searchInput);
+        System.out.println(searchInput + " : " + set);
+        System.out.println();
+
+        String searchInput1 = "удаваться AND одноименный";
+        Set<Integer> set1 = searchService.search(searchInput1);
+        System.out.println(searchInput1 + " : " + set1);
+        System.out.println();
+
+        String searchInput2 = "NOT парной";
+        Set<Integer> set2 = searchService.search(searchInput2);
+        System.out.println(searchInput2 + " : " + set2);
+        System.out.println();
+
+        String searchInput21 = "парной";
+        Set<Integer> set21 = searchService.search(searchInput21);
+        System.out.println(searchInput21 + " : " + set21);
+        System.out.println();
+
+        String searchInput3 = "((удаваться AND одноименный) AND (удаваться OR неагрессивный)) OR вапва";
+        Set<Integer> set3 = searchService.search(searchInput3);
+        System.out.println(searchInput3 + " : " + set3);
+        System.out.println();
+
+        String searchInput4 = "((удаваться AND одноименный) AND воыопа) OR (распечатать AND полгода)";
+        Set<Integer> set4 = searchService.search(searchInput4);
+        System.out.println(searchInput4 + " : " + set4);
+        System.out.println();
     }
 
     /* Разбиваем на слова, собираем все в формате ключ - значение (ключ - лемма, значение - массив индексов файлов) */
     public void process(String fileName, String text) {
         int index = Integer.parseInt(fileName.replace(".txt", ""));
+        allIndexes.add(index);
         String[] words = text.toLowerCase().split(" ");
         for (String word : words) {
             List<WordformMeaning> list = WordformMeaning.lookupForMeanings(word);
